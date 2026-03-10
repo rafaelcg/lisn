@@ -241,7 +241,9 @@ const createSessionManager = () => {
   const captureAdapter = process.platform === "darwin" ? new MacCaptureAdapter() : new WindowsCaptureAdapter();
   const settingsStore = new SettingsStore();
   const sessionStore = new SessionStore();
-  const modelsDirectory = join(process.cwd(), "models");
+  const modelsDirectory = app.isPackaged
+    ? join(process.resourcesPath, "models")
+    : join(process.cwd(), "models");
   const transcriptionProvider = new WhisperProvider(modelsDirectory);
   return new SessionManager(captureAdapter, sessionStore, settingsStore, transcriptionProvider);
 };

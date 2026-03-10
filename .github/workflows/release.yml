@@ -1,0 +1,117 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build and upload assets for"
+        required: true
+        type: string
+
+jobs:
+  prepare_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.resolve_tag.outputs.tag }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref }}
+
+      - name: Resolve tag
+        id: resolve_tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure release exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.resolve_tag.outputs.tag }}
+        run: |
+          if gh release view "$TAG" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            exit 0
+          fi
+
+          if [[ "$TAG" == *-* ]]; then
+            gh release create "$TAG" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --draft \
+              --prerelease \
+              --title "$TAG" \
+              --notes-file CHANGELOG.md
+          else
+            gh release create "$TAG" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --draft \
+              --title "$TAG" \
+              --notes-file CHANGELOG.md
+          fi
+
+  build_macos:
+    needs: prepare_release
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-13
+            arch: x64
+          - runner: macos-14
+            arch: arm64
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare_release.outputs.tag }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Rebuild native modules
+        run: npm rebuild better-sqlite3
+
+      - name: Stage macOS helper
+        run: bash ./scripts/stage-macos-helper.sh
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build release artifacts
+        run: npm run make -- --arch=${{ matrix.arch }}
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.prepare_release.outputs.tag }}
+        run: |
+          mapfile -t assets < <(find out/make -type f \( -name '*.dmg' -o -name '*.zip' \) | sort)
+
+          if [ "${#assets[@]}" -eq 0 ]; then
+            echo "No release assets were produced."
+            exit 1
+          fi
+
+          gh release upload "$TAG" "${assets[@]}" --repo "${GITHUB_REPOSITORY}" --clobber

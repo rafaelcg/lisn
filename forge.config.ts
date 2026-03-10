@@ -8,7 +8,8 @@ const config: ForgeConfig = {
     appBundleId: "com.rafael.lisn",
     name: "Lisn",
     osxSign: {},
-    prune: true
+    prune: true,
+    extraResource: [".lisn-build/LisnCaptureHelper"]
   },
   rebuildConfig: {},
   makers: [

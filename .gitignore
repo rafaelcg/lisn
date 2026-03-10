@@ -3,6 +3,7 @@ node_modules
 out
 dist
 .lisn-temp
+.lisn-build
 models
 native/macos/LisnCaptureHelper/.build
 *.log

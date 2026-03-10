@@ -2,6 +2,7 @@ import { EventEmitter } from "node:events";
 import { randomUUID } from "node:crypto";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { app } from "electron";
 import type { AppSettings, CaptureSource, ExportFormat, SessionEvent, SessionRecord, SessionWithSegments } from "@shared/types";
 import type { CaptureAdapter } from "./capture/types";
 import { exportTranscript } from "./storage/exporter";
@@ -81,7 +82,7 @@ export class SessionManager {
     }
 
     const sessionId = randomUUID();
-    mkdirSync(join(process.cwd(), ".lisn-temp"), { recursive: true });
+    mkdirSync(join(app.getPath("temp"), ".lisn-temp"), { recursive: true });
     const startedAt = new Date().toISOString();
     const captureSession = await this.captureAdapter.startSession(sessionId, source.id);
     const unsubscribe = this.captureAdapter.onSessionEvent(sessionId, (event) => this.emit(event));

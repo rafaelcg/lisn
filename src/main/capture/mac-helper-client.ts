@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { app } from "electron";
 import type { CaptureSource, SessionEvent } from "@shared/types";
 
 type HelperControlResponse = {
@@ -94,10 +95,15 @@ export class MacHelperClient {
       return;
     }
 
+    const packagedBinary = join(process.resourcesPath, "LisnCaptureHelper", "LisnCaptureHelper");
     const builtBinary = join(process.cwd(), "native", "macos", "LisnCaptureHelper", ".build", "release", "LisnCaptureHelper");
     const helperDir = join(process.cwd(), "native", "macos", "LisnCaptureHelper");
 
-    if (existsSync(builtBinary)) {
+    if (app.isPackaged && existsSync(packagedBinary)) {
+      this.helperProcess = spawn(packagedBinary, [], {
+        stdio: ["pipe", "pipe", "pipe"]
+      });
+    } else if (existsSync(builtBinary)) {
       this.helperProcess = spawn(builtBinary, [], {
         stdio: ["pipe", "pipe", "pipe"]
       });

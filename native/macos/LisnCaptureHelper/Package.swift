@@ -2,14 +2,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "LissenCaptureHelper",
+    name: "LisnCaptureHelper",
     platforms: [.macOS(.v14)],
     products: [
-        .executable(name: "LissenCaptureHelper", targets: ["LissenCaptureHelper"])
+        .executable(name: "LisnCaptureHelper", targets: ["LisnCaptureHelper"])
     ],
     targets: [
         .executableTarget(
-            name: "LissenCaptureHelper",
+            name: "LisnCaptureHelper",
             linkerSettings: [
                 .linkedFramework("ScreenCaptureKit"),
                 .linkedFramework("AVFoundation")

@@ -1,10 +1,10 @@
-# Lissen Agent Notes
+# Lisn Agent Notes
 
 This file is for future agents working in this repository.
 
 ## Product summary
 
-Lissen is a macOS-first Electron transcription app with:
+Lisn is a macOS-first Electron transcription app with:
 
 - a compact tray popover for quick capture
 - a dashboard window for transcript history, export, and settings
@@ -42,7 +42,7 @@ Do not describe the app as having real-time transcript streaming unless that is 
 - `src/renderer/App.tsx`
 - `src/main/session-manager.ts`
 - `src/main/transcription/whisper-provider.ts`
-- `native/macos/LissenCaptureHelper/Sources/LissenCaptureHelper/main.swift`
+- `native/macos/LisnCaptureHelper/Sources/LisnCaptureHelper/main.swift`
 
 ## Renderer mode split
 

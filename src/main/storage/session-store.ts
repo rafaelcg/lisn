@@ -12,7 +12,7 @@ export class SessionStore {
   private readonly db: Database.Database;
 
   constructor(databasePath?: string) {
-    const dbPath = databasePath ?? join(app.getPath("userData"), "lissen.sqlite");
+    const dbPath = databasePath ?? join(app.getPath("userData"), "lisn.sqlite");
     mkdirSync(dirname(dbPath), { recursive: true });
     this.db = new Database(dbPath);
     this.migrate();

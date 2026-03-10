@@ -10,7 +10,7 @@ import type {
   TranscriptSegment
 } from "@shared/types";
 
-const bridge = window.lissen;
+const bridge = window.lisn;
 type AppTab = "capture" | "transcript" | "settings";
 const windowMode = new URLSearchParams(window.location.search).get("mode") === "tray" ? "tray" : "dashboard";
 
@@ -388,7 +388,7 @@ export default function App() {
   async function handleOpenPermissions() {
     try {
       await bridge.openPermissionsSettings();
-      setStatusBanner("Opened system privacy settings. Enable Screen Recording for Lissen or Electron, then restart the app.");
+      setStatusBanner("Opened system privacy settings. Enable Screen Recording for Lisn or Electron, then restart the app.");
     } catch (error) {
       setStatusBanner(error instanceof Error ? error.message : "Could not open system privacy settings.");
     }
@@ -421,7 +421,7 @@ export default function App() {
         <header className="tray-head">
           <div>
             <p className="eyebrow">Quick capture</p>
-            <h1>Lissen</h1>
+            <h1>Lisn</h1>
           </div>
           <button type="button" className="secondary-button" onClick={() => void handleOpenDashboard()}>
             Dashboard
@@ -538,7 +538,7 @@ export default function App() {
       <header className="masthead">
         <div className="masthead-copy">
           <p className="eyebrow">Audio window capture utility</p>
-          <h1>Lissen</h1>
+          <h1>Lisn</h1>
           <p className="masthead-note">Tray-first transcription for app or window audio, with optional cloud cleanup after capture.</p>
         </div>
         <div className="badge-cluster">
@@ -624,7 +624,7 @@ export default function App() {
                     </p>
                     <p className="source-summary-note">
                       {BROWSER_APPS.has(selectedSource.appName ?? selectedSource.name)
-                        ? "Browser capture is app-first here. Tabs are not stable OS-level sources, so Lissen targets the browser application instead of individual tabs."
+                        ? "Browser capture is app-first here. Tabs are not stable OS-level sources, so Lisn targets the browser application instead of individual tabs."
                         : selectedSource.kind === "window"
                           ? "Window capture may fall back to the owning app's audio when the platform cannot isolate that exact window."
                           : "Application capture is generally more stable than exact window targeting."}

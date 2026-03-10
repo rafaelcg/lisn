@@ -37,7 +37,7 @@ export class MacHelperClient {
         buffer = lines.pop() ?? "";
 
         for (const line of lines.filter(Boolean)) {
-          console.log("[Lissen helper stdout]", line);
+          console.log("[Lisn helper stdout]", line);
           const message = JSON.parse(line) as HelperControlResponse | SessionEvent;
           if ("requestId" in message) {
             const handler = this.pending.get(message.requestId);
@@ -94,15 +94,15 @@ export class MacHelperClient {
       return;
     }
 
-    const builtBinary = join(process.cwd(), "native", "macos", "LissenCaptureHelper", ".build", "release", "LissenCaptureHelper");
-    const helperDir = join(process.cwd(), "native", "macos", "LissenCaptureHelper");
+    const builtBinary = join(process.cwd(), "native", "macos", "LisnCaptureHelper", ".build", "release", "LisnCaptureHelper");
+    const helperDir = join(process.cwd(), "native", "macos", "LisnCaptureHelper");
 
     if (existsSync(builtBinary)) {
       this.helperProcess = spawn(builtBinary, [], {
         stdio: ["pipe", "pipe", "pipe"]
       });
     } else {
-      this.helperProcess = spawn("swift", ["run", "--package-path", helperDir, "LissenCaptureHelper"], {
+      this.helperProcess = spawn("swift", ["run", "--package-path", helperDir, "LisnCaptureHelper"], {
         stdio: ["pipe", "pipe", "pipe"]
       });
     }
@@ -111,10 +111,10 @@ export class MacHelperClient {
       // Consume stderr so helper logging never blocks the process.
     });
     this.helperProcess.stderr.on("data", (chunk) => {
-      console.error("[Lissen helper stderr]", chunk.toString("utf8").trim());
+      console.error("[Lisn helper stderr]", chunk.toString("utf8").trim());
     });
     this.helperProcess.on("exit", () => {
-      console.error("[Lissen helper exit]");
+      console.error("[Lisn helper exit]");
       this.helperProcess = null;
       this.connected = false;
       this.attachedStdout = false;

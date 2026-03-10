@@ -9,7 +9,7 @@ describe("exportTranscript", () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), "lissen-export-"));
+    tempDir = mkdtempSync(join(tmpdir(), "lisn-export-"));
   });
 
   afterEach(() => {

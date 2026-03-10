@@ -1,8 +1,8 @@
-import type { LissenApi } from "@shared/types";
+import type { LisnApi } from "@shared/types";
 
 declare global {
   interface Window {
-    lissen: LissenApi;
+    lisn: LisnApi;
   }
 
   const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;

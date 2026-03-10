@@ -10,8 +10,8 @@ describe("SessionStore", () => {
   let store: SessionStore;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), "lissen-store-"));
-    store = new SessionStore(join(tempDir, "lissen.sqlite"));
+    tempDir = mkdtempSync(join(tmpdir(), "lisn-store-"));
+    store = new SessionStore(join(tempDir, "lisn.sqlite"));
   });
 
   afterEach(() => {

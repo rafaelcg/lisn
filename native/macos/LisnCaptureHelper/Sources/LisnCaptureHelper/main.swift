@@ -182,7 +182,7 @@ final class CaptureCoordinatorMac15 {
 
     func stopSession(sessionId: String) async throws -> String {
         guard let session = sessions.removeValue(forKey: sessionId) else {
-            throw NSError(domain: "LissenCaptureHelper", code: 404, userInfo: [NSLocalizedDescriptionKey: "Unknown session"])
+            throw NSError(domain: "LisnCaptureHelper", code: 404, userInfo: [NSLocalizedDescriptionKey: "Unknown session"])
         }
 
         try await session.stream.stopCapture()
@@ -206,13 +206,13 @@ final class CaptureCoordinatorMac15 {
             return SCContentFilter(display: display, including: [application], exceptingWindows: [])
         }
 
-        throw NSError(domain: "LissenCaptureHelper", code: 400, userInfo: [NSLocalizedDescriptionKey: "Requested source is no longer available"])
+        throw NSError(domain: "LisnCaptureHelper", code: 400, userInfo: [NSLocalizedDescriptionKey: "Requested source is no longer available"])
     }
 
     private func exportAudioTrack(from movieURL: URL, to audioURL: URL) async throws {
         let asset = AVURLAsset(url: movieURL)
         guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
-            throw NSError(domain: "LissenCaptureHelper", code: 500, userInfo: [NSLocalizedDescriptionKey: "Could not create audio exporter"])
+            throw NSError(domain: "LisnCaptureHelper", code: 500, userInfo: [NSLocalizedDescriptionKey: "Could not create audio exporter"])
         }
 
         exporter.outputURL = audioURL
@@ -224,9 +224,9 @@ final class CaptureCoordinatorMac15 {
                 case .completed:
                     continuation.resume()
                 case .failed, .cancelled:
-                    continuation.resume(throwing: exporter.error ?? NSError(domain: "LissenCaptureHelper", code: 500, userInfo: [NSLocalizedDescriptionKey: "Audio export failed"]))
+                    continuation.resume(throwing: exporter.error ?? NSError(domain: "LisnCaptureHelper", code: 500, userInfo: [NSLocalizedDescriptionKey: "Audio export failed"]))
                 default:
-                    continuation.resume(throwing: NSError(domain: "LissenCaptureHelper", code: 500, userInfo: [NSLocalizedDescriptionKey: "Audio export ended in unexpected state"]))
+                    continuation.resume(throwing: NSError(domain: "LisnCaptureHelper", code: 500, userInfo: [NSLocalizedDescriptionKey: "Audio export ended in unexpected state"]))
                 }
             }
         }
@@ -234,7 +234,7 @@ final class CaptureCoordinatorMac15 {
 }
 
 @main
-struct LissenCaptureHelper {
+struct LisnCaptureHelper {
     static func main() async {
         _ = NSApplication.shared
         if #available(macOS 15.0, *) {
@@ -294,7 +294,7 @@ struct LissenCaptureHelper {
                     writeResponse(OutgoingResponse(requestId: request.requestId, ok: true, payload: .sources(sources), error: nil))
                 case "start-session", "stop-session":
                     throw NSError(
-                        domain: "LissenCaptureHelper",
+                        domain: "LisnCaptureHelper",
                         code: 501,
                         userInfo: [NSLocalizedDescriptionKey: "Audio capture requires macOS 15 or newer in the current implementation."]
                     )

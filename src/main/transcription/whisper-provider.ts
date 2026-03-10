@@ -53,7 +53,7 @@ export class WhisperProvider implements TranscriptionProvider {
       await access(modelPath);
       await access(audioPath);
       const whisperBin = await this.resolveWhisperCli();
-      const outputDir = await mkdtemp(join(tmpdir(), "lissen-whisper-"));
+      const outputDir = await mkdtemp(join(tmpdir(), "lisn-whisper-"));
       const outputBase = join(outputDir, "transcript");
 
       await new Promise<void>((resolve, reject) => {

@@ -1,6 +1,6 @@
-# Lissen
+# Lisn
 
-Lissen is a macOS-first Electron app for capturing app or window audio and saving timestamped transcripts locally.
+Lisn is a macOS-first Electron app for capturing app or window audio and saving timestamped transcripts locally.
 
 It currently ships two surfaces:
 
@@ -9,7 +9,7 @@ It currently ships two surfaces:
 
 ## Current status
 
-Lissen is usable for local development on macOS, but it is still early-stage software.
+Lisn is usable for local development on macOS, but it is still early-stage software.
 
 What works today:
 
@@ -48,7 +48,7 @@ What does not exist yet:
 - `src/main` Electron main process, IPC, storage, capture adapters, transcription services
 - `src/renderer` tray and dashboard React UI
 - `src/shared` shared types and IPC contracts
-- `native/macos/LissenCaptureHelper` Swift package for macOS capture
+- `native/macos/LisnCaptureHelper` Swift package for macOS capture
 - `scripts` helper scripts for model download and native helper builds
 - `tests` storage, export, and contract tests
 
@@ -92,7 +92,7 @@ npm start
 
 ## macOS permissions
 
-Lissen needs Screen Recording permission for the process macOS associates with the app during development. Depending on how you launch it, that may appear as:
+Lisn needs Screen Recording permission for the process macOS associates with the app during development. Depending on how you launch it, that may appear as:
 
 - `Terminal`
 - `Ghostty`
@@ -102,7 +102,7 @@ If capture fails, verify that permission before changing app code.
 
 ## Local transcription setup
 
-Lissen expects `whisper.cpp` to be available through one of these paths:
+Lisn expects `whisper.cpp` to be available through one of these paths:
 
 - `WHISPER_CPP_BIN`
 - your shell `PATH`

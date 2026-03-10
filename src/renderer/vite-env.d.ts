@@ -1,9 +1,9 @@
 /// <reference types="vite/client" />
 
-import type { LissenApi } from "@shared/types";
+import type { LisnApi } from "@shared/types";
 
 declare global {
   interface Window {
-    lissen: LissenApi;
+    lisn: LisnApi;
   }
 }

@@ -2,7 +2,7 @@
 
 ## Supported status
 
-Lissen is currently an early-stage open-source project and is not yet production-hardened.
+Lisn is currently an early-stage open-source project and is not yet production-hardened.
 
 Known security-sensitive limitations:
 

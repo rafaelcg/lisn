@@ -1,4 +1,4 @@
-# Contributing to Lissen
+# Contributing to Lisn
 
 ## Before you start
 

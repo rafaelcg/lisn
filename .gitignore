@@ -2,9 +2,9 @@ node_modules
 .vite
 out
 dist
-.lissen-temp
+.lisn-temp
 models
-native/macos/LissenCaptureHelper/.build
+native/macos/LisnCaptureHelper/.build
 *.log
 .DS_Store
 coverage

@@ -33,10 +33,10 @@ export class SessionManager {
     try {
       const sources = await this.captureAdapter.listSources();
       this.lastListedSources = new Map(sources.map((source) => [source.id, source]));
-      console.log("[Lissen session manager] listSources ok", sources.length);
+      console.log("[Lisn session manager] listSources ok", sources.length);
       return sources;
     } catch (error) {
-      console.error("[Lissen session manager] listSources failed", error);
+      console.error("[Lisn session manager] listSources failed", error);
       throw error;
     }
   }
@@ -81,7 +81,7 @@ export class SessionManager {
     }
 
     const sessionId = randomUUID();
-    mkdirSync(join(process.cwd(), ".lissen-temp"), { recursive: true });
+    mkdirSync(join(process.cwd(), ".lisn-temp"), { recursive: true });
     const startedAt = new Date().toISOString();
     const captureSession = await this.captureAdapter.startSession(sessionId, source.id);
     const unsubscribe = this.captureAdapter.onSessionEvent(sessionId, (event) => this.emit(event));
@@ -150,9 +150,9 @@ export class SessionManager {
         const cloud = await this.transcriptionProvider.refineWithCloud(sessionId, stopResult.audioPath, settings.openAiApiKey);
         segments = cloud.segments;
         engine = cloud.engine;
-        console.log("[Lissen session manager] cloud refinement ok", { sessionId, segments: cloud.segments.length });
+        console.log("[Lisn session manager] cloud refinement ok", { sessionId, segments: cloud.segments.length });
       } catch (error) {
-        console.error("[Lissen session manager] cloud refinement failed", error);
+        console.error("[Lisn session manager] cloud refinement failed", error);
         this.emit({
           sessionId,
           type: "error",

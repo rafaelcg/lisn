@@ -21,11 +21,11 @@ let isQuitting = false;
 let trayMenu: Menu | null = null;
 
 process.on("uncaughtException", (error) => {
-  console.error("[Lissen main] uncaughtException", error);
+  console.error("[Lisn main] uncaughtException", error);
 });
 
 process.on("unhandledRejection", (error) => {
-  console.error("[Lissen main] unhandledRejection", error);
+  console.error("[Lisn main] unhandledRejection", error);
 });
 
 const getRendererUrl = (mode: "tray" | "dashboard") => {
@@ -144,7 +144,7 @@ const getLiveTrayWindow = () => {
     void window.isVisible();
     return window;
   } catch (error) {
-    console.error("[Lissen main] recreating destroyed tray window", error);
+    console.error("[Lisn main] recreating destroyed tray window", error);
     trayWindow = createTrayWindow();
     return trayWindow;
   }
@@ -203,7 +203,7 @@ const togglePanel = () => {
     panelWindow.show();
     panelWindow.focus();
   } catch (error) {
-    console.error("[Lissen main] tray toggle failed", error);
+    console.error("[Lisn main] tray toggle failed", error);
     trayWindow = createTrayWindow();
   }
 };
@@ -221,7 +221,7 @@ const openDashboard = () => {
 const createTray = () => {
   const trayAsset = getTrayAsset();
   tray = new Tray(trayAsset);
-  tray.setToolTip("Lissen");
+  tray.setToolTip("Lisn");
   if (process.platform === "darwin" && trayAsset.isEmpty()) {
     tray.setTitle("Lis");
   }
@@ -271,7 +271,7 @@ app.on("before-quit", () => {
 });
 
 app.on("will-quit", () => {
-  console.error("[Lissen main] will-quit");
+  console.error("[Lisn main] will-quit");
 });
 
 app.on("activate", () => {

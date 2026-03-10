@@ -78,7 +78,7 @@ export interface SessionEvent {
   fallbackSourceId?: string;
 }
 
-export interface LissenApi {
+export interface LisnApi {
   listSources(): Promise<CaptureSource[]>;
   startSession(input: StartSessionInput): Promise<SessionRecord>;
   stopSession(sessionId: string): Promise<SessionWithSegments>;

@@ -9,7 +9,7 @@ export class MacCaptureAdapter implements CaptureAdapter {
 
   async listSources() {
     const sources = await this.helperClient.listSources();
-    console.log("[Lissen mac adapter] listed sources", sources.length);
+    console.log("[Lisn mac adapter] listed sources", sources.length);
     return sources;
   }
 

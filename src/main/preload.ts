@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { IPC_CHANNELS } from "@shared/ipc";
-import type { AppSettings, ExportFormat, LissenApi, SessionEvent, StartSessionInput } from "@shared/types";
+import type { AppSettings, ExportFormat, LisnApi, SessionEvent, StartSessionInput } from "@shared/types";
 
-const api: LissenApi = {
+const api: LisnApi = {
   listSources: () => ipcRenderer.invoke(IPC_CHANNELS.listSources),
   startSession: (input: StartSessionInput) => ipcRenderer.invoke(IPC_CHANNELS.startSession, input),
   stopSession: (sessionId: string) => ipcRenderer.invoke(IPC_CHANNELS.stopSession, sessionId),
@@ -30,4 +30,4 @@ const api: LissenApi = {
   chooseTranscriptDirectory: () => ipcRenderer.invoke(IPC_CHANNELS.chooseTranscriptDirectory)
 };
 
-contextBridge.exposeInMainWorld("lissen", api);
+contextBridge.exposeInMainWorld("lisn", api);

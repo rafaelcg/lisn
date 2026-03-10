@@ -3,11 +3,35 @@ import { MakerDMG } from "@electron-forge/maker-dmg";
 import { MakerZIP } from "@electron-forge/maker-zip";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 
+const hasAppleSigningCredentials = Boolean(
+  process.env.APPLE_CERTIFICATE_P12_BASE64 &&
+    process.env.APPLE_CERTIFICATE_PASSWORD &&
+    process.env.APPLE_TEAM_ID
+);
+
+const hasAppleNotarizationCredentials = Boolean(
+  process.env.APPLE_API_KEY_PATH &&
+    process.env.APPLE_API_KEY_ID &&
+    process.env.APPLE_API_ISSUER
+);
+
 const config: ForgeConfig = {
   packagerConfig: {
     appBundleId: "com.rafael.lisn",
     name: "Lisn",
-    osxSign: {},
+    osxSign: hasAppleSigningCredentials
+      ? {
+          identity: process.env.APPLE_SIGNING_IDENTITY,
+          keychain: process.env.APPLE_KEYCHAIN_PATH
+        }
+      : undefined,
+    osxNotarize: hasAppleSigningCredentials && hasAppleNotarizationCredentials
+      ? {
+          appleApiKey: process.env.APPLE_API_KEY_PATH!,
+          appleApiKeyId: process.env.APPLE_API_KEY_ID!,
+          appleApiIssuer: process.env.APPLE_API_ISSUER!
+        }
+      : undefined,
     prune: true,
     extraResource: [".lisn-build/LisnCaptureHelper"],
     ignore: (file) => {

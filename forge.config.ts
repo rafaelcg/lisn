@@ -9,7 +9,18 @@ const config: ForgeConfig = {
     name: "Lisn",
     osxSign: {},
     prune: true,
-    extraResource: [".lisn-build/LisnCaptureHelper"]
+    extraResource: [".lisn-build/LisnCaptureHelper"],
+    ignore: (file) => {
+      if (!file) {
+        return false;
+      }
+
+      return ![
+        /^\/\.vite/,
+        /^\/node_modules/,
+        /^\/package\.json$/
+      ].some((pattern) => pattern.test(file));
+    }
   },
   rebuildConfig: {},
   makers: [

@@ -25,6 +25,25 @@ function normalizeSegments(
     }));
 }
 
+function createFallbackSegment(sessionId: string, source: "local" | "cloud", text: string): TranscriptSegment[] {
+  const normalizedText = text.trim();
+  if (!normalizedText) {
+    return [];
+  }
+
+  return [
+    {
+      id: randomUUID(),
+      sessionId,
+      startMs: 0,
+      endMs: 0,
+      text: normalizedText,
+      confidence: null,
+      source
+    }
+  ];
+}
+
 export class WhisperProvider implements TranscriptionProvider {
   constructor(private readonly modelsDirectory: string) {}
 
@@ -115,14 +134,17 @@ export class WhisperProvider implements TranscriptionProvider {
     }
 
     const payload = await response.json() as {
+      text?: string;
       segments?: Array<{ start?: number; end?: number; text?: string; avg_logprob?: number }>;
     };
 
+    const segments = Array.isArray(payload.segments)
+      ? normalizeSegments(sessionId, "cloud", payload.segments)
+      : [];
+
     return {
       engine: "openai:whisper-1",
-      segments: Array.isArray(payload.segments)
-        ? normalizeSegments(sessionId, "cloud", payload.segments)
-        : []
+      segments: segments.length ? segments : createFallbackSegment(sessionId, "cloud", payload.text ?? "")
     };
   }
 

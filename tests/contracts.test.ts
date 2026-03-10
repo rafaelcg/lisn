@@ -5,6 +5,7 @@ describe("shared contracts", () => {
   it("accepts valid settings", () => {
     const result = settingsSchema.parse({
       openAiApiKey: "",
+      transcriptionRelayUrl: "https://lisn-transcription-relay.rafaelcg-a0a.workers.dev",
       localModel: "base",
       transcriptDirectory: "/tmp",
       launchAtLogin: false,

@@ -1,0 +1,42 @@
+import type { ForgeConfig } from "@electron-forge/shared-types";
+import { MakerDMG } from "@electron-forge/maker-dmg";
+import { MakerZIP } from "@electron-forge/maker-zip";
+import { VitePlugin } from "@electron-forge/plugin-vite";
+
+const config: ForgeConfig = {
+  packagerConfig: {
+    appBundleId: "com.rafael.lissen",
+    name: "Lissen",
+    osxSign: {},
+    prune: true
+  },
+  rebuildConfig: {},
+  makers: [
+    new MakerZIP({}, ["darwin"]),
+    new MakerDMG({})
+  ],
+  plugins: [
+    new VitePlugin({
+      build: [
+        {
+          entry: "src/main/main.ts",
+          config: "vite.main.config.ts",
+          target: "main"
+        },
+        {
+          entry: "src/main/preload.ts",
+          config: "vite.preload.config.ts",
+          target: "preload"
+        }
+      ],
+      renderer: [
+        {
+          name: "main_window",
+          config: "vite.renderer.config.ts"
+        }
+      ]
+    })
+  ]
+};
+
+export default config;

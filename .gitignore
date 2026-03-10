@@ -1,0 +1,13 @@
+node_modules
+.vite
+out
+dist
+.lissen-temp
+models
+native/macos/LissenCaptureHelper/.build
+*.log
+.DS_Store
+coverage
+.env
+.env.local
+.env.*.local

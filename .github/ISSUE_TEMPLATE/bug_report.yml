@@ -1,0 +1,46 @@
+name: Bug report
+description: Report a reproducible problem in Lissen
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the bug and the expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the capture target, what you clicked, and what happened next.
+      placeholder: |
+        1. Launch the app
+        2. Open the tray popover
+        3. Select source ...
+        4. Start and stop recording ...
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS
+        - Windows
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Paste relevant logs, console output, or screenshots.
+      render: shell
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment details
+      description: Include Node version, app mode, hardware details, and whether `whisper.cpp` is installed.

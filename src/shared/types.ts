@@ -56,6 +56,7 @@ export interface SessionWithSegments extends SessionRecord {
 
 export interface AppSettings {
   openAiApiKey: string;
+  transcriptionRelayUrl: string;
   localModel: string;
   transcriptDirectory: string;
   launchAtLogin: boolean;

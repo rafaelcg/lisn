@@ -20,11 +20,12 @@ export class SettingsStore {
 
     const defaults: AppSettings = {
       openAiApiKey: "",
+      transcriptionRelayUrl: process.env.LISN_TRANSCRIPTION_RELAY_URL ?? "https://lisn-transcription-relay.rafaelcg-a0a.workers.dev",
       localModel: "base",
       transcriptDirectory: app.getPath("documents"),
       launchAtLogin: false,
       saveAudioByDefault: false,
-      useCloudRefinementByDefault: false
+      useCloudRefinementByDefault: true
     };
 
     try {

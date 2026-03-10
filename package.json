@@ -12,6 +12,8 @@
     "stage:mac-helper": "./scripts/stage-macos-helper.sh",
     "package": "electron-forge package",
     "make": "electron-forge make",
+    "relay:dev": "npx wrangler dev --config cloudflare/transcription-relay/wrangler.toml",
+    "relay:deploy": "npx wrangler deploy --config cloudflare/transcription-relay/wrangler.toml",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "test": "vitest run",

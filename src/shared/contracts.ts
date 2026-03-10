@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const settingsSchema = z.object({
   openAiApiKey: z.string(),
+  transcriptionRelayUrl: z.string(),
   localModel: z.string(),
   transcriptDirectory: z.string(),
   launchAtLogin: z.boolean(),

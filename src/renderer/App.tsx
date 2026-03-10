@@ -16,7 +16,8 @@ const windowMode = new URLSearchParams(window.location.search).get("mode") === "
 
 const defaultSettings: AppSettings = {
   openAiApiKey: "",
-  useCloudRefinementByDefault: false,
+  transcriptionRelayUrl: "",
+  useCloudRefinementByDefault: true,
   saveAudioByDefault: false,
   launchAtLogin: false,
   localModel: "base",
@@ -121,10 +122,7 @@ function sessionModeLabel(session: SessionRecord | SessionWithSegments) {
   if (session.engine.startsWith("openai:")) {
     return "Cloud transcript";
   }
-  if (session.engine.startsWith("whisper.cpp:")) {
-    return "Local transcript";
-  }
-  return session.usedCloudRefinement ? "Cloud requested" : "Local requested";
+  return "Cloud transcript";
 }
 
 export default function App() {
@@ -134,9 +132,8 @@ export default function App() {
   const [selectedSourceId, setSelectedSourceId] = useState("");
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus>(defaultRuntimeStatus);
-  const [useCloudRefinement, setUseCloudRefinement] = useState(false);
+  const [useCloudRefinement] = useState(true);
   const [saveAudio, setSaveAudio] = useState(false);
-  const [showApiKey, setShowApiKey] = useState(false);
   const [statusBanner, setStatusBanner] = useState("Loading sources and history.");
   const [isBusy, setIsBusy] = useState(false);
   const [isRefreshingSources, setIsRefreshingSources] = useState(false);
@@ -231,7 +228,6 @@ export default function App() {
           setSelectedSourceId(cleaned[0]?.id ?? "");
           setSettings(nextSettings);
           setRuntimeStatus(nextRuntimeStatus);
-          setUseCloudRefinement(nextSettings.useCloudRefinementByDefault);
           setSaveAudio(nextSettings.saveAudioByDefault);
           setSessions(detailedSessions);
           setSelectedSessionId(detailedSessions[0]?.id ?? "");
@@ -319,9 +315,7 @@ export default function App() {
         setSessions((current) => [detailed, ...current.filter((entry) => entry.id !== detailed.id)]);
         setSelectedSessionId(detailed.id);
         setActiveTab("transcript");
-        setStatusBanner(
-          `Capturing ${selectedSource.name}.${useCloudRefinement ? " Cloud refinement enabled." : " Local transcription only."}`
-        );
+        setStatusBanner(`Capturing ${selectedSource.name}. Cloud transcription will run after stop.`);
       });
     } catch (error) {
       setStatusBanner(error instanceof Error ? error.message : "Unable to start transcription.");
@@ -375,7 +369,6 @@ export default function App() {
       const nextRuntimeStatus = await bridge.getRuntimeStatus();
       setSettings(nextSettings);
       setRuntimeStatus(nextRuntimeStatus);
-      setUseCloudRefinement(nextSettings.useCloudRefinementByDefault);
       setSaveAudio(nextSettings.saveAudioByDefault);
       setStatusBanner("Preferences saved.");
     } catch (error) {
@@ -464,34 +457,24 @@ export default function App() {
           </div>
 
           <div className="tray-mode-row">
-            <button
-              type="button"
-              className={`mini-mode ${!useCloudRefinement ? "mini-mode-active" : ""}`}
-              onClick={() => setUseCloudRefinement(false)}
-            >
-              Local
-            </button>
-            <button
-              type="button"
-              className={`mini-mode ${useCloudRefinement ? "mini-mode-active" : ""}`}
-              onClick={() => setUseCloudRefinement(true)}
-            >
-              Cloud
-            </button>
+            <div className="readout-card">
+              <strong>Cloud-only transcription</strong>
+              <p>
+                {runtimeStatus.cloudTranscriptionConfigured
+                  ? "Transcription runs with OpenAI after capture stops."
+                  : "This build does not have cloud transcription configured yet."}
+              </p>
+            </div>
             <label className="toggle tray-toggle">
               <input type="checkbox" checked={saveAudio} onChange={(event) => setSaveAudio(event.target.checked)} />
               <span>Keep audio</span>
             </label>
           </div>
 
-          {!runtimeStatus.localTranscriptionAvailable && !useCloudRefinement ? (
-            <p className="mode-warning">Local mode unavailable on this machine right now.</p>
-          ) : null}
-
           <button
             className={`action-button tray-start ${activeSession ? "action-button-stop" : ""}`}
             type="button"
-            disabled={isBusy || (!activeSession && !sources.length)}
+            disabled={isBusy || (!activeSession && (!sources.length || !runtimeStatus.cloudTranscriptionConfigured))}
             onClick={activeSession ? handleStopSession : handleStartSession}
           >
             {activeSession ? "Stop capture" : "Start capture"}
@@ -539,7 +522,7 @@ export default function App() {
         <div className="masthead-copy">
           <p className="eyebrow">Audio window capture utility</p>
           <h1>Lisn</h1>
-          <p className="masthead-note">Tray-first transcription for app or window audio, with optional cloud cleanup after capture.</p>
+          <p className="masthead-note">Tray-first transcription for app or window audio, finalized with cloud transcription after capture.</p>
         </div>
         <div className="badge-cluster">
           <span className={`signal ${activeSession ? "signal-live" : ""}`}>{activeSession ? "Recording" : "Idle"}</span>
@@ -561,7 +544,7 @@ export default function App() {
           <button
             className={`action-button ${activeSession ? "action-button-stop" : ""}`}
             type="button"
-            disabled={isBusy || (!activeSession && !sources.length)}
+            disabled={isBusy || (!activeSession && (!sources.length || !runtimeStatus.cloudTranscriptionConfigured))}
             onClick={activeSession ? handleStopSession : handleStartSession}
           >
             {activeSession ? "Stop capture" : "Start capture"}
@@ -642,38 +625,20 @@ export default function App() {
             <section className="card capture-options-card">
               <div className="card-head">
                 <div>
-                  <p className="eyebrow">Mode</p>
-                  <h2>Transcription path</h2>
+                  <p className="eyebrow">Transcription</p>
+                  <h2>Cloud workflow</h2>
                 </div>
-                <span className="card-kicker">{useCloudRefinement ? "Cloud after capture" : "Local only"}</span>
+                <span className="card-kicker">OpenAI after capture</span>
               </div>
 
-              <div className="mode-grid">
-                <button
-                  type="button"
-                  className={`mode-card ${!useCloudRefinement ? "mode-card-active" : ""}`}
-                  onClick={() => setUseCloudRefinement(false)}
-                >
-                  <strong>Local only</strong>
-                  <span>{runtimeStatus.localTranscriptionReason}</span>
-                </button>
-                <button
-                  type="button"
-                  className={`mode-card ${useCloudRefinement ? "mode-card-active" : ""}`}
-                  onClick={() => setUseCloudRefinement(true)}
-                >
-                  <strong>Local + cloud polish</strong>
-                  <span>
-                    {runtimeStatus.cloudTranscriptionConfigured
-                      ? "Generate a local draft when available, then replace it with a cloud transcript after stop."
-                      : "Add an OpenAI API key in Settings to enable cloud refinement."}
-                  </span>
-                </button>
+              <div className="readout-card">
+                <strong>Cloud-only transcription</strong>
+                <p>
+                  {runtimeStatus.cloudTranscriptionConfigured
+                    ? "Lisn records first, then sends the captured audio to OpenAI for transcription after you stop."
+                    : "This build does not have a cloud transcription relay configured yet."}
+                </p>
               </div>
-
-              {!runtimeStatus.localTranscriptionAvailable && !useCloudRefinement ? (
-                <p className="mode-warning">Local-only mode is currently unavailable. Either install local Whisper or switch on cloud refinement.</p>
-              ) : null}
 
               <div className="toggle-row">
                 <label className="toggle">
@@ -756,7 +721,7 @@ export default function App() {
                     <span>
                       {selectedSession.id
                         ? selectedSession.errorMessage ??
-                          "This session did not produce text. If local mode is selected, confirm your local Whisper setup before recording again."
+                          "This session did not produce text. Check the cloud transcription configuration and try again."
                         : "Start a session to record and transcribe."}
                     </span>
                   </div>
@@ -789,28 +754,15 @@ export default function App() {
               </div>
 
               <form className="settings-form" onSubmit={handleSaveSettings}>
-                <label className="field">
-                  <span>OpenAI API key</span>
-                  <div className="input-with-action">
-                    <input
-                      type={showApiKey ? "text" : "password"}
-                      value={settings.openAiApiKey}
-                      onChange={(event) => setSettings((current) => ({ ...current, openAiApiKey: event.target.value }))}
-                      placeholder="sk-..."
-                      autoComplete="off"
-                      spellCheck={false}
-                    />
-                    <button type="button" className="inline-action-button" onClick={() => setShowApiKey((current) => !current)}>
-                      {showApiKey ? "Hide" : "Show"}
-                    </button>
-                  </div>
-                </label>
-
                 <div className="field">
-                  <span>Local transcription</span>
+                  <span>Cloud transcription</span>
                   <div className="readout-card">
-                    <strong>{settings.localModel === "base" ? "Whisper base model" : settings.localModel}</strong>
-                    <p>{runtimeStatus.localTranscriptionReason}</p>
+                    <strong>{runtimeStatus.cloudTranscriptionConfigured ? "Configured" : "Not configured"}</strong>
+                    <p>
+                      {runtimeStatus.cloudTranscriptionConfigured
+                        ? "This build uses OpenAI transcription automatically after each capture."
+                        : "This build still needs a managed cloud transcription relay before it is ready on install."}
+                    </p>
                   </div>
                 </div>
 
@@ -828,16 +780,6 @@ export default function App() {
                 </label>
 
                 <div className="toggle-stack">
-                  <label className="toggle">
-                    <input
-                      type="checkbox"
-                      checked={settings.useCloudRefinementByDefault}
-                      onChange={(event) =>
-                        setSettings((current) => ({ ...current, useCloudRefinementByDefault: event.target.checked }))
-                      }
-                    />
-                    <span>Enable cloud refinement by default</span>
-                  </label>
                   <label className="toggle">
                     <input
                       type="checkbox"

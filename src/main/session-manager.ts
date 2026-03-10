@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { app } from "electron";
-import type { AppSettings, CaptureSource, ExportFormat, SessionEvent, SessionRecord, SessionWithSegments } from "@shared/types";
+import type { AppSettings, CaptureSource, ExportFormat, SessionEvent, SessionRecord, SessionWithSegments, TranscriptSegment } from "@shared/types";
 import type { CaptureAdapter } from "./capture/types";
 import { exportTranscript } from "./storage/exporter";
 import { SessionStore } from "./storage/session-store";
@@ -56,7 +56,7 @@ export class SessionManager {
 
   async getRuntimeStatus() {
     const settings = this.settingsStore.get();
-    return this.transcriptionProvider.getRuntimeStatus(settings.openAiApiKey);
+    return this.transcriptionProvider.getRuntimeStatus(settings.transcriptionRelayUrl);
   }
 
   updateSettings(partial: Partial<AppSettings>): AppSettings {
@@ -64,6 +64,11 @@ export class SessionManager {
   }
 
   async startSession(input: { sourceId: string; useCloudRefinement: boolean; saveAudio: boolean }): Promise<SessionRecord> {
+    const settings = this.settingsStore.get();
+    if (!settings.transcriptionRelayUrl) {
+      throw new Error("Lisn cloud transcription relay is not configured for this build.");
+    }
+
     let source = this.lastListedSources.get(input.sourceId);
     const requestedSource = source;
     if (!source) {
@@ -86,7 +91,7 @@ export class SessionManager {
     const startedAt = new Date().toISOString();
     const captureSession = await this.captureAdapter.startSession(sessionId, source.id);
     const unsubscribe = this.captureAdapter.onSessionEvent(sessionId, (event) => this.emit(event));
-    const shouldUseCloudRefinement = input.useCloudRefinement;
+    const shouldUseCloudRefinement = true;
 
     const record: SessionRecord = {
       id: sessionId,
@@ -97,7 +102,7 @@ export class SessionManager {
       status: "capturing",
       startedAt,
       endedAt: null,
-      engine: "whisper.cpp:base",
+      engine: "openai:whisper-1",
       usedCloudRefinement: shouldUseCloudRefinement,
       audioPath: input.saveAudio ? captureSession.audioPath : null,
       exportPath: null,
@@ -117,7 +122,7 @@ export class SessionManager {
       sessionId,
       type: "status",
       status: "capturing",
-      message: `Capturing ${source.name}`
+      message: `Capturing ${source.name}. Cloud transcription will run after stop.`
     });
 
     return record;
@@ -140,26 +145,26 @@ export class SessionManager {
 
     const stopResult = await this.captureAdapter.stopSession(sessionId);
     activeSession.unsubscribe();
-    const draft = await this.transcriptionProvider.transcribeDraft(sessionId, stopResult.audioPath);
-    let segments = draft.segments;
-    let engine = draft.engine;
-
     const settings = this.settingsStore.get();
-    const shouldUseCloud = Boolean(settings.openAiApiKey) && activeSession.useCloudRefinement;
-    if (shouldUseCloud && settings.openAiApiKey) {
-      try {
-        const cloud = await this.transcriptionProvider.refineWithCloud(sessionId, stopResult.audioPath, settings.openAiApiKey);
-        segments = cloud.segments;
-        engine = cloud.engine;
-        console.log("[Lisn session manager] cloud refinement ok", { sessionId, segments: cloud.segments.length });
-      } catch (error) {
-        console.error("[Lisn session manager] cloud refinement failed", error);
-        this.emit({
-          sessionId,
-          type: "error",
-          message: error instanceof Error ? error.message : "Cloud refinement failed"
-        });
-      }
+    if (!settings.transcriptionRelayUrl) {
+      throw new Error("Lisn cloud transcription relay is not configured for this build.");
+    }
+
+    let segments: TranscriptSegment[] = [];
+    let engine = "openai:whisper-1";
+
+    try {
+      const cloud = await this.transcriptionProvider.refineWithCloud(sessionId, stopResult.audioPath, settings.transcriptionRelayUrl);
+      segments = cloud.segments;
+      engine = cloud.engine;
+      console.log("[Lisn session manager] cloud transcription ok", { sessionId, segments: cloud.segments.length });
+    } catch (error) {
+      console.error("[Lisn session manager] cloud transcription failed", error);
+      this.emit({
+        sessionId,
+        type: "error",
+        message: error instanceof Error ? error.message : "Cloud transcription failed"
+      });
     }
 
     this.sessionStore.replaceSegments(sessionId, segments);

@@ -28,23 +28,12 @@ function normalizeSegments(
 export class WhisperProvider implements TranscriptionProvider {
   constructor(private readonly modelsDirectory: string) {}
 
-  async getRuntimeStatus(apiKey: string): Promise<RuntimeStatus> {
-    const modelPath = join(this.modelsDirectory, "ggml-base.bin");
-    try {
-      await access(modelPath);
-      await this.resolveWhisperCli();
-      return {
-        localTranscriptionAvailable: true,
-        localTranscriptionReason: "whisper.cpp is ready.",
-        cloudTranscriptionConfigured: Boolean(apiKey)
-      };
-    } catch (error) {
-      return {
-        localTranscriptionAvailable: false,
-        localTranscriptionReason: "Local Whisper is unavailable. Install whisper.cpp CLI and the base model to use local-only mode.",
-        cloudTranscriptionConfigured: Boolean(apiKey)
-      };
-    }
+  async getRuntimeStatus(relayUrl: string): Promise<RuntimeStatus> {
+    return {
+      localTranscriptionAvailable: false,
+      localTranscriptionReason: "Lisn is configured for cloud transcription only.",
+      cloudTranscriptionConfigured: Boolean(relayUrl)
+    };
   }
 
   async transcribeDraft(sessionId: string, audioPath: string): Promise<FinalizedTranscription> {
@@ -109,19 +98,30 @@ export class WhisperProvider implements TranscriptionProvider {
     }
   }
 
-  async refineWithCloud(sessionId: string, audioPath: string, apiKey: string): Promise<FinalizedTranscription> {
-    const client = new OpenAI({ apiKey });
-    const response = await client.audio.transcriptions.create({
-      file: await OpenAI.toFile(await readFile(audioPath), audioPath.split("/").pop() ?? "audio.m4a"),
-      model: "whisper-1",
-      response_format: "verbose_json",
-      timestamp_granularities: ["segment"]
+  async refineWithCloud(sessionId: string, audioPath: string, relayUrl: string): Promise<FinalizedTranscription> {
+    const form = new FormData();
+    const audioBytes = await readFile(audioPath);
+    form.append("file", new Blob([audioBytes], { type: "audio/mp4" }), audioPath.split("/").pop() ?? "audio.m4a");
+    form.append("model", "whisper-1");
+
+    const response = await fetch(new URL("/v1/transcriptions", relayUrl), {
+      method: "POST",
+      body: form
     });
+
+    if (!response.ok) {
+      const details = await response.text();
+      throw new Error(details || `Relay transcription failed with status ${response.status}`);
+    }
+
+    const payload = await response.json() as {
+      segments?: Array<{ start?: number; end?: number; text?: string; avg_logprob?: number }>;
+    };
 
     return {
       engine: "openai:whisper-1",
-      segments: "segments" in response && Array.isArray(response.segments)
-        ? normalizeSegments(sessionId, "cloud", response.segments)
+      segments: Array.isArray(payload.segments)
+        ? normalizeSegments(sessionId, "cloud", payload.segments)
         : []
     };
   }

@@ -39,6 +39,10 @@ const config: ForgeConfig = {
         return false;
       }
 
+      if (/^\/node_modules\/\.bin(\/|$)/.test(file)) {
+        return true;
+      }
+
       return ![
         /^\/\.vite/,
         /^\/node_modules/,

@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lisn — Capture Mac Audio, Export Clean Transcripts</title>
+  <meta
+    name="description"
+    content="Lisn is an open source macOS app for capturing app or window audio and turning it into timestamped transcripts."
+  >
+  <meta name="theme-color" content="#ff6b35">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #ffffff;
+      --accent: #ff6b35;
+      --accent-light: #ff8c61;
+      --gray: #f4f4f4;
+      --gray-dark: #2a2a2a;
+      --border-light: rgba(255, 255, 255, 0.12);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--white);
+      color: var(--black);
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      padding: 24px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      mix-blend-mode: difference;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: white;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 40px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 55% 45%;
+    }
+
+    .hero-left {
+      background: var(--black);
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 120px 64px 64px;
+      position: relative;
+    }
+
+    .hero-left::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 200px;
+      height: 100%;
+      background: linear-gradient(to right, transparent, var(--accent));
+      opacity: 0.1;
+    }
+
+    .tag {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 32px;
+      width: fit-content;
+    }
+
+    h1 {
+      font-size: clamp(48px, 6vw, 80px);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      margin-bottom: 32px;
+    }
+
+    .hero-text {
+      font-size: 18px;
+      line-height: 1.7;
+      opacity: 0.76;
+      max-width: 520px;
+      margin-bottom: 40px;
+    }
+
+    .cta-group {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary,
+    .btn-download {
+      background: var(--accent);
+      color: white;
+      padding: 18px 36px;
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-primary:hover,
+    .btn-download:hover {
+      background: var(--accent-light);
+      transform: translateX(4px);
+    }
+
+    .btn-primary::after,
+    .btn-download::after {
+      content: "→";
+      font-size: 20px;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: white;
+      padding: 18px 36px;
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      border-color: white;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 32px;
+      opacity: 0.82;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hero-meta span {
+      padding: 10px 14px;
+      border: 1px solid var(--border-light);
+      border-radius: 999px;
+    }
+
+    .hero-right {
+      background: var(--accent);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 64px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-right::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(0, 0, 0, 0.03) 10px,
+        rgba(0, 0, 0, 0.03) 20px
+      );
+      animation: slide 20s linear infinite;
+    }
+
+    @keyframes slide {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    .app-preview {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .app-card {
+      background: var(--black);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow:
+        0 50px 100px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .app-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .recording-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 107, 53, 0.2);
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .recording-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .waveform {
+      height: 60px;
+      background: linear-gradient(
+        to right,
+        rgba(255, 107, 53, 0.1) 0%,
+        rgba(255, 107, 53, 0.3) 50%,
+        rgba(255, 107, 53, 0.1) 100%
+      );
+      border-radius: 10px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .waveform::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--accent);
+      transform: translateY(-50%);
+    }
+
+    .waveform-bars {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .bar {
+      width: 4px;
+      background: var(--accent);
+      border-radius: 2px;
+      animation: wave 1s ease-in-out infinite;
+    }
+
+    .bar:nth-child(1) { height: 20%; animation-delay: 0s; }
+    .bar:nth-child(2) { height: 60%; animation-delay: 0.1s; }
+    .bar:nth-child(3) { height: 40%; animation-delay: 0.2s; }
+    .bar:nth-child(4) { height: 80%; animation-delay: 0.3s; }
+    .bar:nth-child(5) { height: 50%; animation-delay: 0.4s; }
+    .bar:nth-child(6) { height: 70%; animation-delay: 0.5s; }
+    .bar:nth-child(7) { height: 30%; animation-delay: 0.6s; }
+    .bar:nth-child(8) { height: 55%; animation-delay: 0.7s; }
+
+    @keyframes wave {
+      0%, 100% { transform: scaleY(0.5); }
+      50% { transform: scaleY(1); }
+    }
+
+    .transcript-preview {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .transcript-line {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .transcript-line:last-child {
+      margin-bottom: 0;
+    }
+
+    .time {
+      color: var(--accent);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .text {
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .marquee-section {
+      background: var(--black);
+      color: white;
+      padding: 40px 0;
+      overflow: hidden;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .marquee {
+      display: flex;
+      animation: marquee 20s linear infinite;
+      white-space: nowrap;
+    }
+
+    .marquee span {
+      font-size: 24px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0 40px;
+      opacity: 0.5;
+    }
+
+    .marquee span:nth-child(odd) {
+      color: var(--accent);
+    }
+
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .features {
+      padding: 120px 48px;
+      background: var(--gray);
+    }
+
+    .features-header {
+      max-width: 1200px;
+      margin: 0 auto 80px;
+    }
+
+    .features-header h2 {
+      font-size: 56px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .features-header span {
+      color: var(--accent);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: white;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+    }
+
+    .feature-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--black);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+
+    .feature-card h3 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .feature-card p {
+      font-size: 15px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .download {
+      padding: 120px 48px;
+      background: var(--black);
+      color: white;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .download::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 800px;
+      height: 800px;
+      background: var(--accent);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.1;
+      filter: blur(100px);
+    }
+
+    .download-content {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .download h2 {
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+
+    .download p {
+      font-size: 18px;
+      opacity: 0.75;
+      margin-bottom: 40px;
+    }
+
+    .platform-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 12px 24px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 24px;
+    }
+
+    .download-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .download-meta {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      opacity: 0.72;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    footer {
+      padding: 40px 48px;
+      background: var(--black);
+      color: rgba(255, 255, 255, 0.5);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      font-size: 14px;
+    }
+
+    footer a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-right {
+        min-height: 50vh;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      nav {
+        padding: 16px 24px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero-left,
+      .hero-right,
+      .features,
+      .download,
+      footer {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+
+      .download h2,
+      .features-header h2 {
+        font-size: 42px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">LISN</div>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#download">Download</a></li>
+      <li><a href="https://github.com/rafaelcg/lisn">GitHub</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-left">
+      <div class="tag">v0.1.0-alpha.1</div>
+      <h1>Turn app<br>audio into<br>usable text.</h1>
+      <p class="hero-text">
+        Lisn captures audio from a specific app or window on your Mac, then turns that recording
+        into a clean, timestamped transcript. It is open source, tray-first, and ready to download.
+      </p>
+      <div class="cta-group">
+        <a
+          href="https://github.com/rafaelcg/lisn/releases/download/v0.1.0-alpha.1/Lisn-0.1.0-alpha.1-arm64.dmg"
+          class="btn-primary"
+        >Download DMG</a>
+        <a href="https://github.com/rafaelcg/lisn/releases/tag/v0.1.0-alpha.1" class="btn-secondary">Release Notes</a>
+      </div>
+      <div class="hero-meta">
+        <span>Signed + notarized</span>
+        <span>macOS Apple Silicon</span>
+        <span>MIT licensed</span>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="app-preview">
+        <div class="app-card">
+          <div class="app-header">
+            <span class="app-title">Capture session</span>
+            <span class="recording-badge">
+              <span class="recording-dot"></span>
+              Ready
+            </span>
+          </div>
+          <div class="waveform">
+            <div class="waveform-bars">
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+            </div>
+          </div>
+          <div class="transcript-preview">
+            <div class="transcript-line">
+              <span class="time">00:12</span>
+              <span class="text">Review the roadmap items from this sprint.</span>
+            </div>
+            <div class="transcript-line">
+              <span class="time">00:16</span>
+              <span class="text">Capture ends first, then cloud transcription runs.</span>
+            </div>
+            <div class="transcript-line">
+              <span class="time">00:21</span>
+              <span class="text">Export the final transcript as Markdown or plain text.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="marquee-section" aria-hidden="true">
+    <div class="marquee">
+      <span>Capture</span>
+      <span>•</span>
+      <span>Transcribe</span>
+      <span>•</span>
+      <span>Export</span>
+      <span>•</span>
+      <span>Open Source</span>
+      <span>•</span>
+      <span>Capture</span>
+      <span>•</span>
+      <span>Transcribe</span>
+      <span>•</span>
+      <span>Export</span>
+      <span>•</span>
+      <span>Open Source</span>
+      <span>•</span>
+      <span>Capture</span>
+      <span>•</span>
+      <span>Transcribe</span>
+      <span>•</span>
+      <span>Export</span>
+      <span>•</span>
+      <span>Open Source</span>
+      <span>•</span>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="features-header">
+      <h2>Built for <span>focused capture.</span><br>Designed for <span>real release.</span></h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Tray-First</h3>
+        <p>Start from the menu bar, keep the interface compact, and drop into the full dashboard only when you need it.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>App + Window Capture</h3>
+        <p>Pick a target app or window instead of recording your whole machine. The source list filters out system noise.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">☁️</div>
+        <h3>Cloud Transcription</h3>
+        <p>Lisn sends the finished recording through its transcription relay after capture stops, so the app works out of the box.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💾</div>
+        <h3>Session History</h3>
+        <p>Every capture is stored in local SQLite history so you can reopen, inspect, and export it later.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📄</div>
+        <h3>Export Cleanly</h3>
+        <p>Ship transcripts as Markdown or plain text for meeting notes, research logs, support calls, and internal docs.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔓</div>
+        <h3>Open Source</h3>
+        <p>The app is MIT licensed and the full codebase is public, including release automation and the hosted landing page.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="download" id="download">
+    <div class="download-content">
+      <h2>Download Lisn</h2>
+      <p>Install the signed macOS alpha, open Screen Recording permissions once, and start capturing.</p>
+      <div class="platform-tag">
+        <span>🍎</span> Apple Silicon macOS alpha
+      </div>
+      <div class="download-actions">
+        <a
+          href="https://github.com/rafaelcg/lisn/releases/download/v0.1.0-alpha.1/Lisn-0.1.0-alpha.1-arm64.dmg"
+          class="btn-download"
+        >Download DMG</a>
+        <a
+          href="https://github.com/rafaelcg/lisn/releases/download/v0.1.0-alpha.1/Lisn-darwin-arm64-0.1.0-alpha.1.zip"
+          class="btn-secondary"
+        >Download ZIP</a>
+        <a href="https://github.com/rafaelcg/lisn/releases/tag/v0.1.0-alpha.1" class="btn-secondary">See Release</a>
+      </div>
+      <div class="download-meta">
+        <span>Version 0.1.0-alpha.1</span>
+        <span>Signed + notarized</span>
+        <span>No user API key required</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>© <span id="year">2026</span> Lisn. Open source transcript capture for macOS.</div>
+    <div>
+      <a href="https://github.com/rafaelcg/lisn">GitHub</a>
+      ·
+      <a href="https://github.com/rafaelcg/lisn/issues">Issues</a>
+      ·
+      <a href="https://github.com/rafaelcg/lisn/releases/tag/v0.1.0-alpha.1">Alpha Release</a>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = String(new Date().getFullYear());
+  </script>
+</body>
+</html>

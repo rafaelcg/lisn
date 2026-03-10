@@ -1,7 +1,7 @@
 {
   "name": "lissen",
   "productName": "Lissen",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "private": false,
   "description": "Tray-first desktop transcription app for app and window audio.",
   "license": "MIT",

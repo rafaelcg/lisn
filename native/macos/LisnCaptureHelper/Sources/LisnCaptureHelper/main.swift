@@ -1,6 +1,7 @@
 import AVFoundation
 import AppKit
 import CoreMedia
+import CoreGraphics
 import Foundation
 import ScreenCaptureKit
 
@@ -74,7 +75,20 @@ func writeEvent(sessionId: String, type: String, message: String?, status: Strin
     writeJSON(EventEnvelope(sessionId: sessionId, type: type, message: message, status: status))
 }
 
+func ensureScreenCaptureAccess() throws {
+    guard CGPreflightScreenCaptureAccess() else {
+        throw NSError(
+            domain: "LisnCaptureHelper",
+            code: 403,
+            userInfo: [
+                NSLocalizedDescriptionKey: "Screen Recording access is not active for this Lisn launch. Enable Lisn in System Settings, then fully quit Lisn from the menu bar and reopen it from Applications."
+            ]
+        )
+    }
+}
+
 func enumerateSources() async throws -> [CaptureSource] {
+    try ensureScreenCaptureAccess()
     let shareable = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
     let windows = shareable.windows
         .filter { $0.owningApplication?.bundleIdentifier != Bundle.main.bundleIdentifier }
@@ -140,6 +154,7 @@ final class CaptureCoordinatorMac15 {
     private var sessions: [String: CaptureSession] = [:]
 
     func startSession(sessionId: String, sourceId: String) async throws -> String {
+        try ensureScreenCaptureAccess()
         let shareable = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
         let filter = try makeFilter(sourceId: sourceId, shareable: shareable)
         let movieURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(sessionId).mov")

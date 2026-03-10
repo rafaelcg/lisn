@@ -388,7 +388,7 @@ export default function App() {
   async function handleOpenPermissions() {
     try {
       await bridge.openPermissionsSettings();
-      setStatusBanner("Opened system privacy settings. Enable Screen Recording for Lisn or Electron, then restart the app.");
+      setStatusBanner("Opened system privacy settings. Enable Screen Recording for Lisn, then fully quit Lisn from the menu bar and reopen it from Applications.");
     } catch (error) {
       setStatusBanner(error instanceof Error ? error.message : "Could not open system privacy settings.");
     }

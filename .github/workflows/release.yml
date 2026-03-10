@@ -99,11 +99,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.prepare_release.outputs.tag }}
         run: |
-          mapfile -t assets < <(find out/make -type f \( -name '*.dmg' -o -name '*.zip' \) | sort)
+          find out/make -type f \( -name '*.dmg' -o -name '*.zip' \) | sort > release-assets.txt
 
-          if [ "${#assets[@]}" -eq 0 ]; then
+          if [ ! -s release-assets.txt ]; then
             echo "No release assets were produced."
             exit 1
           fi
 
-          gh release upload "$TAG" "${assets[@]}" --repo "${GITHUB_REPOSITORY}" --clobber
+          while IFS= read -r asset; do
+            gh release upload "$TAG" "$asset" --repo "${GITHUB_REPOSITORY}" --clobber
+          done < release-assets.txt
